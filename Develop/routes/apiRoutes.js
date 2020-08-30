@@ -1,58 +1,50 @@
-// ===============================================================================
-// LOAD DATA
-// We are linking our routes to a series of 'data' sources.
-// These data sources hold arrays of information on table-data, waitinglist, etc.
-// ===============================================================================
+const fs = require("fs");
+const path = require("path");
+const notesdb = require(path.join(__dirname, '../db/db.json'));
 
-const db = require('../db/db.json');
-
-
-
-// ===============================================================================
-// ROUTING
-// ===============================================================================
+//assigns id to notesdb array
+let i = Math.random();
+notesdb.map(n => {
+    n['id'] = i;
+    i++;
+});
 
 module.exports = function (app) {
-  // API GET Requests
-  // Below code handles when users 'visit' a page.
-  // In each of the below cases when a user visits a link
-  // (ex: localhost:PORT/api/admin... they are shown a JSON of the data in the table)
-  // ---------------------------------------------------------------------------
 
-  app.get('/api/notes', function (req, res) {
-    res.json(db);
-  });
-
-
-
-  // API POST Requests
-  // Below code handles when a user submits a form and thus submits data to the server.
-  // In each of the below cases, when a user submits form data (a JSON object)
-  // ...the JSON is pushed to the appropriate JavaScript array
-  // (ex. User fills out a reservation request... this data is then sent to the server...
-  // Then the server saves the data to the tableData array)
-  // ---------------------------------------------------------------------------
-
-  app.post('/api/notes', function (req, res) {
-    // Note the code here. Our 'server' will respond to requests and let users know if they have a table or not.
-    // It will do this by sending out the value 'true' have a table
-    // req.body is available since we're using the body parsing middleware
-    
-      db.push(req.body);
-      res.json(db);
+    app.get('/api/notes', function (req, res) {
+    res.json(notesdb);
     });
 
 
+    app.post('/api/notes', function (req, res) {  
+    //res.json(db); might not be what's needed here
+        const note = req.body;
 
-  // ---------------------------------------------------------------------------
-  // I added this below code so you could clear out the table while working with the functionality.
-  // Don't worry about it!
+        notesdb.push(note);
+        res.json(note);
 
-  app.post('/api/clear', function (req, res) {
-    // Empty out the arrays of data
-    tableData.length = 0;
-    waitListData.length = 0;
+        fs.writeFileSync(
+            path.join(__dirname, '../db/db.json'),
+            JSON.stringify(notesdb)    
+        );
+    });
 
-    res.json({ ok: true });
-  });
+//API PUT TO ADD ID TO NOTES BEFORE DELETE
+//add id to json array, math.random 
+
+
+
+//API DELETE BASED ON /api/notes/:id
+    app.delete('/api/notes:id', function (req, res) {
+        notesdb.delete(req.body.id);
+        res.json(notesdb);
+    });
+
+//   app.post('/api/clear', function (req, res) {
+//     // Empty out the arrays of data
+//     tableData.length = 0;
+//     waitListData.length = 0;
+
+//     res.json({ ok: true });
+//   });
 };
