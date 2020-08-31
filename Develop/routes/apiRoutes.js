@@ -2,30 +2,31 @@ const fs = require("fs");
 const path = require("path");
 const notesdb = require(path.join(__dirname, '../db/db.json'));
 
-//assigns id to notesdb array
 
 
 module.exports = function(app) {
 
-
+    //gets notes array from db.json file upon app loading
     app.get('/api/notes', function(req, res) {
-        res.json(notesdb);
-        console.log('api get notes');
+        return res.json(notesdb);
     });
 
+    //gives notes an id via math.random
+    function giveID() {
 
-    app.post('/api/notes', function(req, res) {  
-    //res.json(db); might not be what's needed here
         let i = Math.floor(Math.random() * 1000); 
         notesdb.map(n => {
             n['id'] = i;
             i++;
-            console.log('giving api calls an id')
+            
+            console.log('giving api calls an id: ', notesdb);
+            console.log('---------');
         });
-    
+    };
+    //creates new note and pushes it to db.json file, calls giveID function to assign ID
+    app.post('/api/notes', function(req, res) {  
+
         const note = req.body;
-
-
 
         notesdb.push(note);
         res.json(note);
@@ -34,37 +35,37 @@ module.exports = function(app) {
             path.join(__dirname, '../db/db.json'),
             JSON.stringify(notesdb), null, 2
         );
-        console.log('api post note');
+        giveID();
+        console.log('api post note: ', notesdb);
+        console.log('---------');
 
 
     });
 
-//API PUT TO ADD ID TO NOTES BEFORE DELETE
-//add id to json array, math.random 
 
-
-
-//API DELETE BASED ON /api/notes/:id
+//api delete based on id assigned to each note using the splice() function 
     app.delete('/api/notes/:id', function (req, res) {
         let grabID = req.params.id;
-        console.log(grabID);
+        console.log('grabID: ', grabID)
+        console.log('---------');
 
         function deleteID() {
             for (let j = 0; j < notesdb.length; j++) {
-                if (notesdb[j].id = grabID) {
+                if (notesdb[j].id == grabID) {
                     notesdb.splice(j, 1);
-                    console.log(notesdb.id);
                     fs.writeFileSync(
                         path.join(__dirname, '../db/db.json'),
                         JSON.stringify(notesdb), null, 2
                     );
-                    
+                    console.log('deletes note: ', notesdb)
+                    console.log('--------');
                      
                 }
             }
         }
         deleteID();
         res.json(notesdb);
-        console.log(notesdb);
+        console.log('json after delete: ', notesdb);
+        console.log('--------');
     });
 };
